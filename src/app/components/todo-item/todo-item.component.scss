@@ -1,0 +1,242 @@
+@use '../../../styles' as *;
+
+/* ── Entry animation using @starting-style ── */
+@keyframes item-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.todo-item {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition),
+    background var(--transition);
+  animation: item-in 250ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  /* Priority left-border accent */
+  border-left-width: 3px;
+
+  &.high   { border-left-color: var(--priority-high); }
+  &.medium { border-left-color: var(--priority-medium); }
+  &.low    { border-left-color: var(--priority-low); }
+
+  &:hover {
+    border-color: rgba(255,255,255,0.14);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &.completed {
+    opacity: 0.55;
+    border-left-color: var(--border) !important;
+  }
+
+  &.editing {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+    opacity: 1;
+  }
+}
+
+/* ── View Mode ── */
+.item-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+}
+
+/* Custom Checkbox */
+.checkbox-wrap {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  cursor: pointer;
+}
+
+.custom-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  transition: border-color var(--transition), background var(--transition);
+
+  svg {
+    width: 13px;
+    height: 13px;
+    color: #fff;
+  }
+
+  .todo-item.completed & {
+    background: var(--accent-violet);
+    border-color: var(--accent-violet);
+  }
+
+  .checkbox-wrap:hover & {
+    border-color: var(--accent-violet);
+  }
+}
+
+/* Item Body */
+.item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.item-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.35;
+  word-break: break-word;
+  transition: color var(--transition);
+
+  .todo-item.completed & {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+}
+
+.item-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+
+  &.priority-high   { background: rgba(239,68,68,0.15);  color: #f87171; }
+  &.priority-medium { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  &.priority-low    { background: rgba(34,197,94,0.15);  color: #4ade80; }
+}
+
+.due-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+
+  svg { width: 12px; height: 12px; }
+
+  &.overdue { color: #f87171; }
+}
+
+.overdue-label {
+  font-weight: 600;
+  background: rgba(239,68,68,0.15);
+  padding: 0 0.3rem;
+  border-radius: 4px;
+}
+
+/* Action Buttons */
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition);
+
+  .todo-item:hover & { opacity: 1; }
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), color var(--transition);
+
+  svg { width: 15px; height: 15px; }
+
+  &.edit-btn {
+    color: var(--text-muted);
+    &:hover { background: rgba(124,58,237,0.15); color: #a78bfa; }
+  }
+
+  &.delete-btn {
+    color: var(--text-muted);
+    &:hover { background: rgba(239,68,68,0.15); color: #f87171; }
+  }
+}
+
+.confirm-delete {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #f87171;
+  font-weight: 500;
+  animation: item-in 150ms ease both;
+}
+
+/* ── Edit Mode ── */
+.item-edit-form {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border);
+  animation: item-in 200ms ease both;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  input, textarea, select {
+    @extend %input-base;
+  }
+
+  textarea { resize: vertical; min-height: 52px; line-height: 1.45; }
+  select option { background: #1a1b2e; }
+}
+
+.edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}

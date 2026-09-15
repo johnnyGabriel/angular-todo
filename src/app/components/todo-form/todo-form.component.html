@@ -1,0 +1,83 @@
+<section class="form-card" [class.expanded]="expanded()">
+  <button
+    id="add-todo-toggle"
+    class="add-trigger"
+    type="button"
+    [class.active]="expanded()"
+    (click)="toggle()"
+    [attr.aria-expanded]="expanded()"
+    aria-controls="add-todo-form"
+  >
+    <span class="plus-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </span>
+    <span>{{ expanded() ? 'Cancel' : 'New Task' }}</span>
+  </button>
+
+  <div
+    id="add-todo-form"
+    class="form-body"
+    [class.open]="expanded()"
+    role="region"
+    aria-label="Add new task"
+  >
+    <form [formRoot]="formTree" (submit)="submit()">
+      <div class="field">
+        <label for="todo-title">Task title <span aria-hidden="true">*</span></label>
+        <input
+          id="todo-title"
+          type="text"
+          [formField]="titleField"
+          placeholder="What needs to be done?"
+          autocomplete="off"
+          [attr.aria-invalid]="titleField.invalid() && titleField.touched()"
+        />
+        @if (titleField.invalid() && titleField.touched()) {
+          <p class="error" role="alert">
+            @if (hasError(titleField, 'required')) { Title is required. }
+            @if (hasError(titleField, 'minLength')) { At least 2 characters. }
+            @if (hasError(titleField, 'maxLength')) { Maximum 120 characters. }
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="todo-desc">Description <span class="optional">(optional)</span></label>
+        <textarea
+          id="todo-desc"
+          [formField]="formTree.fields.description"
+          placeholder="Add more details…"
+          rows="2"
+        ></textarea>
+      </div>
+
+      <div class="row-fields">
+        <div class="field">
+          <label for="todo-priority">Priority</label>
+          <select id="todo-priority" [formField]="formTree.fields.priority">
+            <option value="low">🟢 Low</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="high">🔴 High</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="todo-due">Due date <span class="optional">(optional)</span></label>
+          <input id="todo-due" type="date" [formField]="formTree.fields.dueDate" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button id="add-todo-submit" type="submit" class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Add Task
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

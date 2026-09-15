@@ -1,0 +1,38 @@
+<nav class="filter-nav" aria-label="Filter tasks">
+  <ul role="tablist" class="filter-tabs">
+    @for (tab of tabs; track tab.value) {
+      <li role="none">
+        <button
+          role="tab"
+          [id]="'filter-' + tab.value"
+          class="filter-tab"
+          [class.active]="svc.filter() === tab.value"
+          [attr.aria-selected]="svc.filter() === tab.value"
+          (click)="setFilter(tab.value)"
+        >
+          {{ tab.label }}
+          @if (tab.value === 'all') {
+            <span class="badge">{{ svc.totalCount() }}</span>
+          }
+          @if (tab.value === 'active') {
+            <span class="badge">{{ svc.activeCount() }}</span>
+          }
+          @if (tab.value === 'completed') {
+            <span class="badge">{{ svc.completedCount() }}</span>
+          }
+        </button>
+      </li>
+    }
+  </ul>
+
+  @if (svc.completedCount() > 0) {
+    <button
+      id="clear-completed-btn"
+      class="clear-btn"
+      type="button"
+      (click)="svc.clearCompleted()"
+    >
+      Clear completed
+    </button>
+  }
+</nav>

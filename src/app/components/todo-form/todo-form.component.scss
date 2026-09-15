@@ -1,0 +1,114 @@
+@use '../../../styles' as *;
+
+.form-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: box-shadow var(--transition-slow);
+
+  &.expanded { box-shadow: var(--shadow-accent); }
+}
+
+.add-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color var(--transition), background var(--transition);
+  text-align: left;
+
+  &:hover { color: var(--text-primary); background: var(--surface-2); }
+
+  &.active {
+    color: var(--text-primary);
+    span:not(.plus-icon) { opacity: 0.7; }
+  }
+}
+
+.plus-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--accent-grad);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.4);
+  transition: transform var(--transition);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: #fff;
+    transition: transform var(--transition);
+  }
+
+  .active & svg { transform: rotate(45deg); }
+}
+
+/* ── Collapsible Form Body ── */
+.form-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-slow);
+  overflow: hidden;
+
+  &.open { grid-template-rows: 1fr; }
+
+  > form {
+    overflow: hidden;
+    padding: 0 1.25rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+}
+
+/* ── Form Fields ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+
+    .optional { color: var(--text-muted); font-weight: 400; }
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea,
+  select {
+    @extend %input-base;
+  }
+
+  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+
+  select option { background: #1a1b2e; }
+}
+
+.row-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}

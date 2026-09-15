@@ -1,0 +1,68 @@
+<div class="app-bg">
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <main class="shell" role="main">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-glow" aria-hidden="true"></div>
+      <div class="header-content">
+        <div class="logo">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <rect width="40" height="40" rx="12" fill="url(#grad)"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#7c3aed"/>
+                <stop offset="100%" stop-color="#db2777"/>
+              </linearGradient>
+            </defs>
+            <polyline points="12 20 17 25 28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">Taskflow</span>
+        </div>
+        <div class="header-stats">
+          <div class="stat">
+            <span class="stat-num">{{ svc.activeCount() }}</span>
+            <span class="stat-label">remaining</span>
+          </div>
+          <div class="stat-divider" aria-hidden="true"></div>
+          <div class="stat">
+            <span class="stat-num">{{ svc.totalCount() }}</span>
+            <span class="stat-label">total</span>
+          </div>
+        </div>
+      </div>
+      <h1 class="visually-hidden">Taskflow — Todo List</h1>
+    </header>
+
+    <!-- ADD FORM -->
+    <app-todo-form />
+
+    <!-- FILTERS -->
+    <app-todo-filter />
+
+    <!-- TASK LIST -->
+    <section aria-label="Task list">
+      @if (svc.filteredTodos().length === 0) {
+        <div class="empty-state" aria-live="polite">
+          <svg viewBox="0 0 80 80" fill="none" aria-hidden="true">
+            <circle cx="40" cy="40" r="38" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+            <path d="M24 40h32M40 24v32" stroke="rgba(255,255,255,0.12)" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p>
+            @if (svc.filter() === 'completed') { No completed tasks yet. }
+            @else if (svc.filter() === 'active') { All caught up! 🎉 }
+            @else { No tasks yet — add your first one above. }
+          </p>
+        </div>
+      } @else {
+        <ul class="todo-list" role="list">
+          @for (todo of svc.filteredTodos(); track todo.id) {
+            <li role="listitem">
+              <app-todo-item [todo]="todo" />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </main>
+</div>

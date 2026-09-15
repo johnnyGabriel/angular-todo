@@ -1,0 +1,143 @@
+<article
+  class="todo-item"
+  [class.completed]="todo.completed"
+  [class.editing]="isEditing"
+  [class.high]="todo.priority === 'high'"
+  [class.medium]="todo.priority === 'medium'"
+  [class.low]="todo.priority === 'low'"
+  [attr.aria-label]="'Task: ' + todo.title"
+>
+  <!-- ── VIEW MODE ── -->
+  @if (!isEditing) {
+    <div class="item-view">
+      <label class="checkbox-wrap" [attr.aria-label]="'Mark ' + todo.title + (todo.completed ? ' as active' : ' as complete')">
+        <input
+          type="checkbox"
+          class="visually-hidden"
+          [checked]="todo.completed"
+          (change)="toggle()"
+          [attr.id]="'chk-' + todo.id"
+        />
+        <span class="custom-check" aria-hidden="true">
+          @if (todo.completed) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          }
+        </span>
+      </label>
+
+      <div class="item-body">
+        <h3 class="item-title">{{ todo.title }}</h3>
+        @if (todo.description) {
+          <p class="item-desc">{{ todo.description }}</p>
+        }
+        <div class="item-meta">
+          <span class="priority-badge priority-{{ todo.priority }}">{{ priorityLabel(todo.priority) }}</span>
+          @if (todo.dueDate) {
+            <span class="due-date" [class.overdue]="isOverdue(todo.dueDate)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              {{ formatDate(todo.dueDate) }}
+              @if (isOverdue(todo.dueDate)) { <span class="overdue-label">Overdue</span> }
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="item-actions">
+        @if (!confirmDelete()) {
+          <button
+            [id]="'edit-' + todo.id"
+            class="action-btn edit-btn"
+            type="button"
+            title="Edit task"
+            aria-label="Edit task"
+            (click)="startEdit()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button
+            [id]="'delete-' + todo.id"
+            class="action-btn delete-btn"
+            type="button"
+            title="Delete task"
+            aria-label="Delete task"
+            (click)="askDelete()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6"/>
+              <path d="M14 11v6"/>
+              <path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
+        } @else {
+          <div class="confirm-delete" role="alertdialog" aria-label="Confirm deletion">
+            <span>Delete?</span>
+            <button [id]="'confirm-del-' + todo.id" class="btn-danger-sm" type="button" (click)="confirmDel()">Yes</button>
+            <button [id]="'cancel-del-' + todo.id" class="btn-ghost-sm" type="button" (click)="cancelDel()">No</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── EDIT MODE ── -->
+  @if (isEditing) {
+    <form
+      class="item-edit-form"
+      [formGroup]="editForm"
+      (ngSubmit)="saveEdit()"
+      novalidate
+      aria-label="Edit task form"
+    >
+      <div class="edit-field">
+        <label [for]="'edit-title-' + todo.id">Title</label>
+        <input
+          [id]="'edit-title-' + todo.id"
+          type="text"
+          formControlName="title"
+          autocomplete="off"
+          [attr.aria-invalid]="editForm.get('title')?.invalid && editForm.get('title')?.touched"
+        />
+        @if (editForm.get('title')?.invalid && editForm.get('title')?.touched) {
+          <p class="error" role="alert">Title is required (min 2 chars).</p>
+        }
+      </div>
+
+      <div class="edit-field">
+        <label [for]="'edit-desc-' + todo.id">Description</label>
+        <textarea [id]="'edit-desc-' + todo.id" formControlName="description" rows="2"></textarea>
+      </div>
+
+      <div class="edit-row">
+        <div class="edit-field">
+          <label [for]="'edit-priority-' + todo.id">Priority</label>
+          <select [id]="'edit-priority-' + todo.id" formControlName="priority">
+            <option value="low">🟢 Low</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="high">🔴 High</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label [for]="'edit-due-' + todo.id">Due date</label>
+          <input [id]="'edit-due-' + todo.id" type="date" formControlName="dueDate" />
+        </div>
+      </div>
+
+      <div class="edit-actions">
+        <button [id]="'save-' + todo.id" type="submit" class="btn-primary-sm">Save</button>
+        <button [id]="'cancel-edit-' + todo.id" type="button" class="btn-ghost-sm" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </form>
+  }
+</article>
