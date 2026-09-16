@@ -296,6 +296,109 @@ test.describe('Todo App – E2E', () => {
 
   });
 
+  // ── Blocked status ───────────────────────────────────────────────────────
+
+  test.describe('Blocked status', () => {
+
+    test('requires a reason before blocking a task', async ({ page }) => {
+      await addTodo(page, 'Blocked task');
+      const item = getTodoItem(page, 'Blocked task');
+
+      await item.locator('.block-btn').click();
+      await item.locator('.confirm-block-btn').click();
+
+      await expect(item.locator('.error[role="alert"]')).toHaveText('A blocker reason is required.');
+    });
+
+    test('blocks a task with a reason and can cancel before confirming', async ({ page }) => {
+      await addTodo(page, 'Blocked task');
+      const item = getTodoItem(page, 'Blocked task');
+
+      await item.locator('.block-btn').click();
+      await item.locator('[id^="block-reason-"]').fill('Waiting for API access');
+      await item.locator('.cancel-block-btn').click();
+      await expect(item).not.toHaveClass(/blocked/);
+
+      await item.locator('.block-btn').click();
+      await item.locator('[id^="block-reason-"]').fill('Waiting for API access');
+      await item.locator('.confirm-block-btn').click();
+
+      await expect(item).toHaveClass(/blocked/);
+      await expect(item.locator('.block-reason')).toContainText('Waiting for API access');
+      await expect(page.locator('#filter-blocked .badge')).toHaveText('1');
+      await expect(page.locator('.stat-num').nth(0)).toHaveText('1');
+    });
+
+    test('unblocks a task and clears its reason', async ({ page }) => {
+      await addTodo(page, 'Status edit task');
+      const item = getTodoItem(page, 'Status edit task');
+      await item.locator('.block-btn').click();
+      await item.locator('[id^="block-reason-"]').fill('Waiting for review');
+      await item.locator('.confirm-block-btn').click();
+
+      await item.locator('.unblock-btn').click();
+
+      await expect(getTodoItem(page, 'Status edit task')).not.toHaveClass(/blocked/);
+      await expect(getTodoItem(page, 'Status edit task').locator('.block-reason')).toHaveCount(0);
+      await page.click('#filter-active');
+      await expect(getTodoItem(page, 'Status edit task')).toBeVisible();
+    });
+
+    test('completing a blocked task clears its reason', async ({ page }) => {
+      await addTodo(page, 'Complete blocked task');
+      const item = getTodoItem(page, 'Complete blocked task');
+      await item.locator('.block-btn').click();
+      await item.locator('[id^="block-reason-"]').fill('Waiting for dependency');
+      await item.locator('.confirm-block-btn').click();
+
+      await toggleTodo(page, 'Complete blocked task');
+
+      await expect(getTodoItem(page, 'Complete blocked task')).toHaveClass(/completed/);
+      await expect(getTodoItem(page, 'Complete blocked task').locator('.block-reason')).toHaveCount(0);
+    });
+
+    test('blocked filter shows blocked tasks only', async ({ page }) => {
+      await addTodo(page, 'Blocked task');
+      await addTodo(page, 'Active task');
+      const blockedItem = getTodoItem(page, 'Blocked task');
+      await blockedItem.locator('.block-btn').click();
+      await blockedItem.locator('[id^="block-reason-"]').fill('Waiting for dependency');
+      await blockedItem.locator('.confirm-block-btn').click();
+
+      await page.click('#filter-blocked');
+
+      await expect(getTodoItem(page, 'Blocked task')).toBeVisible();
+      await expect(page.locator('.todo-list').getByRole('heading', { name: 'Active task' })).toHaveCount(0);
+    });
+
+    test('clear completed leaves blocked tasks intact', async ({ page }) => {
+      await addTodo(page, 'Blocked task');
+      await addTodo(page, 'Completed task');
+      await getTodoItem(page, 'Blocked task').locator('.block-btn').click();
+      await getTodoItem(page, 'Blocked task').locator('[id^="block-reason-"]').fill('Waiting for dependency');
+      await getTodoItem(page, 'Blocked task').locator('.confirm-block-btn').click();
+      await toggleTodo(page, 'Completed task');
+
+      await page.click('#clear-completed-btn');
+
+      await expect(getTodoItem(page, 'Blocked task')).toBeVisible();
+      await expect(page.locator('.todo-list').getByRole('heading', { name: 'Completed task' })).toHaveCount(0);
+    });
+
+    test('migrates legacy completed booleans', async ({ page }) => {
+      await page.evaluate(() => localStorage.setItem('ng-todos', JSON.stringify([
+        { id: 'legacy-active', title: 'Legacy active', priority: 'low', completed: false, createdAt: Date.now() },
+        { id: 'legacy-done', title: 'Legacy done', priority: 'low', completed: true, createdAt: Date.now() },
+      ])));
+      await page.reload();
+
+      await expect(getTodoItem(page, 'Legacy active')).toBeVisible();
+      await page.click('#filter-completed');
+      await expect(getTodoItem(page, 'Legacy done')).toBeVisible();
+    });
+
+  });
+
   // ── Filters ───────────────────────────────────────────────────────────────
   // Filters are role="tab" buttons with static ids: filter-all, filter-active, filter-completed
 

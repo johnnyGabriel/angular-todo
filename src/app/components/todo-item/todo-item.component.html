@@ -1,6 +1,7 @@
 <article
   class="todo-item"
-  [class.completed]="todo.completed"
+  [class.completed]="todo.status === 'completed'"
+  [class.blocked]="todo.status === 'blocked'"
   [class.editing]="isEditing"
   [class.high]="todo.priority === 'high'"
   [class.medium]="todo.priority === 'medium'"
@@ -10,16 +11,16 @@
   <!-- ── VIEW MODE ── -->
   @if (!isEditing) {
     <div class="item-view">
-      <label class="checkbox-wrap" [attr.aria-label]="'Mark ' + todo.title + (todo.completed ? ' as active' : ' as complete')">
+      <label class="checkbox-wrap" [attr.aria-label]="'Mark ' + todo.title + (todo.status === 'completed' ? ' as active' : ' as complete')">
         <input
           type="checkbox"
           class="visually-hidden"
-          [checked]="todo.completed"
+          [checked]="todo.status === 'completed'"
           (change)="toggle()"
           [attr.id]="'chk-' + todo.id"
         />
         <span class="custom-check" aria-hidden="true">
-          @if (todo.completed) {
+          @if (todo.status === 'completed') {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
@@ -34,6 +35,9 @@
         }
         <div class="item-meta">
           <span class="priority-badge priority-{{ todo.priority }}">{{ priorityLabel(todo.priority) }}</span>
+          @if (todo.status === 'blocked') {
+            <span class="blocked-badge">Blocked</span>
+          }
           @if (todo.dueDate) {
             <span class="due-date" [class.overdue]="isOverdue(todo.dueDate)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -47,6 +51,46 @@
             </span>
           }
         </div>
+        @if (todo.status === 'blocked') {
+          <p class="block-reason"><strong>Blocked:</strong> {{ todo.blockReason }}</p>
+          <button
+            [id]="'unblock-' + todo.id"
+            class="unblock-btn"
+            type="button"
+            (click)="unblock()"
+          >
+            Unblock
+          </button>
+        } @else if (todo.status !== 'completed' && !blocking()) {
+          <button
+            [id]="'block-' + todo.id"
+            class="block-btn"
+            type="button"
+            (click)="startBlocking()"
+          >
+            Block task
+          </button>
+        }
+        @if (blocking()) {
+          <div class="block-form" role="group" [attr.aria-label]="'Block ' + todo.title">
+            <label [for]="'block-reason-' + todo.id">Why is this task blocked?</label>
+            <input
+              [id]="'block-reason-' + todo.id"
+              type="text"
+              [(ngModel)]="blockerReason"
+              placeholder="Describe the blocker"
+              maxlength="240"
+              (input)="blockError = false"
+            />
+            @if (blockError) {
+              <p class="error" role="alert">A blocker reason is required.</p>
+            }
+            <div class="block-actions">
+              <button [id]="'confirm-block-' + todo.id" class="btn-primary-sm confirm-block-btn" type="button" (click)="confirmBlocking()">Confirm block</button>
+              <button [id]="'cancel-block-' + todo.id" class="btn-ghost-sm cancel-block-btn" type="button" (click)="cancelBlocking()">Cancel</button>
+            </div>
+          </div>
+        }
       </div>
 
       <div class="item-actions">
