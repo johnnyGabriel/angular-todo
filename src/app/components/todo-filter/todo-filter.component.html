@@ -20,6 +20,9 @@
           @if (tab.value === 'completed') {
             <span class="badge">{{ svc.completedCount() }}</span>
           }
+          @if (tab.value === 'blocked') {
+            <span class="badge">{{ svc.blockedCount() }}</span>
+          }
         </button>
       </li>
     }

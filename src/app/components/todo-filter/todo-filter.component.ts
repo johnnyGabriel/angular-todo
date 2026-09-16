@@ -17,6 +17,7 @@ export class TodoFilterComponent {
     { label: 'All', value: 'all' },
     { label: 'Active', value: 'active' },
     { label: 'Completed', value: 'completed' },
+    { label: 'Blocked', value: 'blocked' },
   ];
 
   setFilter(f: Filter) {

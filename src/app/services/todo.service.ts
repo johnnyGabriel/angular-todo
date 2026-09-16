@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { Todo, Priority, Filter } from '../models/todo.model';
+import { Todo, Priority, Filter, TodoStatus } from '../models/todo.model';
 
 const STORAGE_KEY = 'ng-todos';
 
@@ -16,15 +16,18 @@ export class TodoService {
   readonly filteredTodos = computed(() => {
     const f = this._filter();
     return this._todos().filter(t => {
-      if (f === 'active') return !t.completed;
-      if (f === 'completed') return t.completed;
+      if (f === 'active') return t.status === 'active';
+      if (f === 'completed') return t.status === 'completed';
+      if (f === 'blocked') return t.status === 'blocked';
       return true;
     });
   });
 
-  readonly activeCount = computed(() => this._todos().filter(t => !t.completed).length);
+  readonly activeCount = computed(() => this._todos().filter(t => t.status === 'active').length);
   readonly totalCount = computed(() => this._todos().length);
-  readonly completedCount = computed(() => this._todos().filter(t => t.completed).length);
+  readonly completedCount = computed(() => this._todos().filter(t => t.status === 'completed').length);
+  readonly blockedCount = computed(() => this._todos().filter(t => t.status === 'blocked').length);
+  readonly remainingCount = computed(() => this._todos().filter(t => t.status !== 'completed').length);
 
   constructor() {
     effect(() => {
@@ -39,7 +42,7 @@ export class TodoService {
       description: description.trim() || undefined,
       priority,
       dueDate: dueDate || undefined,
-      completed: false,
+      status: 'active',
       createdAt: Date.now(),
     };
     this._todos.update(ts => [todo, ...ts]);
@@ -54,11 +57,31 @@ export class TodoService {
   }
 
   toggle(id: string): void {
-    this._todos.update(ts => ts.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    this._todos.update(ts => ts.map(t => t.id === id
+      ? {
+          ...t,
+          status: t.status === 'completed' ? 'active' : 'completed',
+          blockReason: undefined,
+        }
+      : t));
+  }
+
+  block(id: string, reason: string): void {
+    const blockReason = reason.trim();
+    if (!blockReason) return;
+    this._todos.update(ts => ts.map(t => t.id === id && t.status !== 'completed'
+      ? { ...t, status: 'blocked', blockReason }
+      : t));
+  }
+
+  unblock(id: string): void {
+    this._todos.update(ts => ts.map(t => t.id === id
+      ? { ...t, status: 'active', blockReason: undefined }
+      : t));
   }
 
   clearCompleted(): void {
-    this._todos.update(ts => ts.filter(t => !t.completed));
+    this._todos.update(ts => ts.filter(t => t.status !== 'completed'));
   }
 
   setFilter(f: Filter): void {
@@ -76,7 +99,14 @@ export class TodoService {
   private _load(): Todo[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : this._demo();
+      return raw ? (JSON.parse(raw) as Array<Todo & { completed?: boolean }>).map(todo => {
+        const { completed, ...currentTodo } = todo;
+        return {
+          ...currentTodo,
+          status: todo.status ?? (completed ? 'completed' : 'active'),
+          blockReason: todo.status === 'blocked' ? todo.blockReason : undefined,
+        };
+      }) : this._demo();
     } catch {
       return this._demo();
     }
@@ -89,7 +119,7 @@ export class TodoService {
         title: 'Design the UI mockups',
         description: 'Create wireframes for all screens',
         priority: 'high',
-        completed: false,
+        status: 'active',
         createdAt: Date.now() - 86400000,
       },
       {
@@ -97,14 +127,14 @@ export class TodoService {
         title: 'Set up Angular project',
         description: 'Initialize app with routing and SCSS',
         priority: 'high',
-        completed: true,
+        status: 'completed',
         createdAt: Date.now() - 172800000,
       },
       {
         id: crypto.randomUUID(),
         title: 'Write unit tests',
         priority: 'medium',
-        completed: false,
+        status: 'active',
         createdAt: Date.now() - 43200000,
       },
       {
@@ -112,7 +142,7 @@ export class TodoService {
         title: 'Deploy to production',
         description: 'Configure CI/CD pipeline',
         priority: 'low',
-        completed: false,
+        status: 'blocked',
         createdAt: Date.now() - 21600000,
         dueDate: '2026-08-20',
       },

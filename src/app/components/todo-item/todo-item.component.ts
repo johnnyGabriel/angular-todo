@@ -1,13 +1,13 @@
 import { Component, Input, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Todo, Priority } from '../../models/todo.model';
 import { TodoService } from '../../services/todo.service';
 
 @Component({
   selector: 'app-todo-item',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './todo-item.component.html',
   styleUrl: './todo-item.component.scss',
 })
@@ -18,6 +18,9 @@ export class TodoItemComponent implements OnInit {
   protected svc = inject(TodoService);
 
   protected confirmDelete = signal(false);
+  protected blocking = signal(false);
+  protected blockerReason = '';
+  protected blockError = false;
 
   editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
@@ -62,6 +65,33 @@ export class TodoItemComponent implements OnInit {
     this.svc.toggle(this.todo.id);
   }
 
+  startBlocking() {
+    this.blockerReason = '';
+    this.blockError = false;
+    this.blocking.set(true);
+  }
+
+  cancelBlocking() {
+    this.blocking.set(false);
+    this.blockerReason = '';
+    this.blockError = false;
+  }
+
+  confirmBlocking() {
+    if (!this.blockerReason.trim()) {
+      this.blockError = true;
+      return;
+    }
+    this.svc.block(this.todo.id, this.blockerReason);
+    this.blocking.set(false);
+    this.blockerReason = '';
+    this.blockError = false;
+  }
+
+  unblock() {
+    this.svc.unblock(this.todo.id);
+  }
+
   askDelete() {
     this.confirmDelete.set(true);
     setTimeout(() => this.confirmDelete.set(false), 3000);
@@ -86,7 +116,7 @@ export class TodoItemComponent implements OnInit {
   }
 
   isOverdue(d?: string): boolean {
-    if (!d || this.todo.completed) return false;
+    if (!d || this.todo.status === 'completed') return false;
     return new Date(d + 'T00:00:00') < new Date(new Date().toDateString());
   }
 }
