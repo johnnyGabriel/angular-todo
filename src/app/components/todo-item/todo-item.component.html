@@ -71,7 +71,7 @@
             Block task
           </button>
         }
-        @if (blocking()) {
+        <!-- @if (blocking()) {
           <div class="block-form" role="group" [attr.aria-label]="'Block ' + todo.title">
             <label [for]="'block-reason-' + todo.id">Why is this task blocked?</label>
             <input
@@ -90,7 +90,7 @@
               <button [id]="'cancel-block-' + todo.id" class="btn-ghost-sm cancel-block-btn" type="button" (click)="cancelBlocking()">Cancel</button>
             </div>
           </div>
-        }
+        } -->
       </div>
 
       <div class="item-actions">
