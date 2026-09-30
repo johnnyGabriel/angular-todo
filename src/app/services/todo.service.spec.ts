@@ -25,7 +25,7 @@ describe('TodoService', () => {
 
     expect(service.todos()).toHaveLength(1);
     expect(service.todos()[0]).toMatchObject({
-      title: 'Plann release',
+      title: 'Plan release',
       description: 'Write notes',
       priority: 'high',
       dueDate: '2026-10-01',
