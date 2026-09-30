@@ -35,14 +35,14 @@ describe('TodoFormComponent', () => {
       title: 'Review pull request',
       description: 'Check edge cases',
       priority: 'high',
-      dueDate: '2026-10-01',
+      dueDate: '2026-10-02',
     });
     component.toggle();
 
     component.submit();
 
     expect(add).toHaveBeenCalledOnce();
-    expect(add).toHaveBeenCalledWith('Review pull request', 'Check edge cases', 'high', '2026-10-01');
+    expect(add).toHaveBeenCalledWith('Review pull request', 'Check edge cases', 'high', '2026-10-02');
     expect(component.formData()).toEqual({ title: '', description: '', priority: 'medium', dueDate: '' });
     expect((component as any).expanded()).toBe(false);
   });
